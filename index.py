@@ -62,19 +62,11 @@ if __name__ == '__main__':
             No data was found
             """)
         else:
-            cols0[1].download_button(label='📥 Download the table',
+            cols0[1].download_button(label='📥 Download data',
                                            data=to_excel(df=time_series_df),
-                                           file_name=f"{selected_country_name}_{selected_indicator_name}.xlsx")
+                                           file_name=f"{selected_country_name}_{selected_indicator_name}.csv")
             numRows = time_series_df.shape[0]
             st.dataframe(data=time_series_df, height=(numRows + 1) * 35 + 3, width=700, hide_index=True)
-        # st.write(""" <table class='table'>
-        #                     <tr><th>Header 1</th><th>Header 2</th> <th>Header 3</th></tr>
-        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-        #                 </table>
-        # """, unsafe_allow_html=True)
     # ------------------------------
 
     # ------------------ Survey / Data collection Guide
