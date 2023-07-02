@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-def get_international_country_codes():
+def get_international_country_codes() -> pd.DataFrame:
     """
     This function returns the list of all countries and their ISO code alpha 2 and 3.
     """
