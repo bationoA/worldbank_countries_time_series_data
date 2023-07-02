@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-def get_international_country_codes() -> pd.DataFrame:
+def get_international_country_codes_df() -> pd.DataFrame:
     """
     This function returns the list of all countries and their ISO code alpha 2 and 3.
     """
@@ -17,23 +17,61 @@ def get_international_country_codes() -> pd.DataFrame:
     return data
 
 
-def get_country_expenditures(country_code, indicator: str):
+def get_world_bank_indicators_codes_df() -> pd.DataFrame:
+    """
+    This function returns the list of all World-Bank's indicators.
+    :return:
+    """
+    file_name = "wb_indicator_key.csv"
+    asset_data_dir = os.path.join("assets", "data")
+    file_full_path = os.path.join(asset_data_dir, file_name)
+    data = pd.read_csv(file_full_path)
+    return data
+
+
+def get_time_series(country_code: str, indicator: str):
     url = "https://api.worldbank.org/v2/country/{country_code}/indicator/{indicator}?format=json"
     api_url = url.format(country_code=country_code, indicator=indicator)
 
+    # print(api_url)
     response = requests.get(api_url)
 
     if response.status_code == 200:
         data = response.json()
-        expenditures = data[1]
 
-        # Process the data as needed
-        for expenditure in expenditures:
-            year = expenditure['date']
-            value = expenditure['value']
-            print(f"Year: {year}, Expenditure: {value}")
+        if len(data) < 2:
+            st.write(data[0]['message'])
+            return None
+
+        timeseries = data[1]
+
+        if timeseries is not None and len(timeseries):
+            list_data = []
+            # Process the data as needed
+            for s in timeseries:
+                data_ = {
+                    "year": s['date'],
+                    "indicator": s['indicator']['value'],
+                    "value": s['value']
+                }
+                list_data.append(data_)
+            return pd.DataFrame(list_data)
+        else:
+            # print("Is None")
+            return None
     else:
-        print("Failed to retrieve data. Error:", response.status_code)
+        st.write("Failed to retrieve data. Error:", response.status_code)
+        return None
+
+
+def to_excel(df: pd.DataFrame):
+    return df.to_csv(index=False).encode('utf-8')
+
+
+def download_as_excel(df: pd.DataFrame, btn_label='Download', name="download"):
+    return st.download_button(label=f'📥 {btn_label}',
+                              data=to_excel(df=df),
+                              file_name=f'{name}.xlsx')
 
 
 def default_pages_config(_title=None):

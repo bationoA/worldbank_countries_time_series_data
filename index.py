@@ -1,83 +1,81 @@
 from src.functions import *
+
 default_pages_config()
 
-
 if __name__ == '__main__':
-    st.title("World-Bank Countries Time Series Data")
+    st.write("""
+    <h1 class='h1 text-center'>World-Bank Countries Time Series Data</h1>
+    """, unsafe_allow_html=True)
     with st.sidebar:
-        population_size = st.number_input(label=f"Population size", min_value=0, value=30)
-        level_of_confidence = st.slider(label=f"Level of confidence (%)", min_value=0, value=80,
-                                        max_value=100)
-        level_of_severity_of_an_error = st.slider(label=f"Level of severity of an error (%)",
-                                                  value=50, max_value=100, min_value=0)
+        countries_df = get_international_country_codes_df()
+        country_names, country_codes = countries_df['Country'].tolist(), countries_df['Iso3code'].tolist()
+        # st.dataframe(countries_df)
 
-    # # Sample list of items
-    # items = ['Apple', 'Banana', 'Orange', 'Mango', 'Pineapple']
-    #
-    # # Create a text input field for keywords
-    # keywords = st.text_input('Enter keywords')
-    #
-    # # Filter the items based on the keywords
-    # filtered_items = [item for item in items if all(keyword.lower() in item.lower() for keyword in keywords.split())]
-    #
-    # # Create a multiselect widget to select items
-    # selected_items = st.multiselect('Select Items', items=filtered_items)
-    #
-    # # Display the selected items
-    # st.write('Selected Items:', selected_items)
+        selected_country_name = st.selectbox('Select country', country_names)
+        # Get the corresponding value based on the selected option
+        selected_country_index = country_names.index(selected_country_name)
+        selected_country_code = country_codes[selected_country_index]
 
-    countries_df = get_international_country_codes()
-    country_names, country_codes = countries_df['Country'].tolist(), countries_df['Iso3code'].tolist()
-    # st.dataframe(countries_df)
+        # Select an indicator
+        wb_indicators_key_df = get_world_bank_indicators_codes_df()
+        indicator_codes = wb_indicators_key_df['indicatorID'].tolist()
+        indicator_names = wb_indicators_key_df['indicator'].tolist()
+        indicators_descriptions = wb_indicators_key_df['indicatorDesc'].tolist()
 
-    selected_country = st.selectbox('Select country', country_names, index=0)
-    # Get the corresponding value based on the selected option
-    selected_country_index = country_names.index(selected_country)
-    selected_country_code = country_codes[selected_country_index]
+        selected_indicator_name = st.selectbox('Select indicator', indicator_names, index=0)
+        # Get the corresponding value based on the selected option
+        selected_indicator_index = indicator_names.index(selected_indicator_name)
+        selected_indicator_code = indicator_codes[selected_indicator_index]
+        selected_indicator_description = indicators_descriptions[selected_indicator_index]
 
-    st.write(f"selected_country_code: {selected_country_code}")
+        st.write(f"""<ul class='list-group'>
+                    <li class='list-group-item fs-4'><span>{selected_indicator_name}</span></li>
+                    <li class='list-group-item fs-5'>Indicator code: <span>{selected_indicator_code}</span></li>
+                    </ul>""", unsafe_allow_html=True)
 
-    cols = st.columns([1, 1, 1])
+    cols = st.columns([1, 1])
 
     # ------------------sample Size
-    with cols[0]:
-        st.header(f"Sample Size'")
-        st.write(""" <table class='table'>
-                            <tr><th>Header 1</th><th>Header 2</th> <th>Header 3</th></tr>
-                            <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-                            <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-                            <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-                            <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
-                        </table>
-        """, unsafe_allow_html=True)
+    time_series_df = None
+    if selected_country_name and selected_indicator_name:
+        time_series_df = get_time_series(
+            country_code=selected_country_code.strip(), indicator=selected_indicator_code.strip())
 
-        st.subheader("To Do list")
+    with cols[0]:
+        cols0 = st.columns([3, 1])
+        cols0[0].write(f"""
+        <ul class='list-group'>
+        <li class='list-group-item fs-2'>Country: <span class='font-weight-bold'>{selected_country_name}</span></li> 
+        </ul>""", unsafe_allow_html=True)
+
+        if time_series_df is None:
+            st.write("""
+            No data was found
+            """)
+        else:
+            cols0[1].download_button(label='📥 Download the table',
+                                           data=to_excel(df=time_series_df),
+                                           file_name=f"{selected_country_name}_{selected_indicator_name}.xlsx")
+            numRows = time_series_df.shape[0]
+            st.dataframe(data=time_series_df, height=(numRows + 1) * 35 + 3, width=700, hide_index=True)
+        # st.write(""" <table class='table'>
+        #                     <tr><th>Header 1</th><th>Header 2</th> <th>Header 3</th></tr>
+        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
+        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
+        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
+        #                     <tr><td>cell</td> <td>cell</td> <td>cell</td></tr>
+        #                 </table>
+        # """, unsafe_allow_html=True)
     # ------------------------------
 
     # ------------------ Survey / Data collection Guide
-    # with cols[1]:
-    cols[1].header("Survey / Data collection Guide")
-    is_business_objective_clearly_defined = cols[1].selectbox(
-        label="Have you clearly defined the business objective?", options=["choose...", "Yes", "No"]
-    )
-
-    if is_business_objective_clearly_defined == "No":
-        cols[1].write("""
-            <span class='alert alert-primary' role='alert'>Clearly defining the objective should before sampling</span>
+    with cols[1]:
+        st.write("""<h3 class='title'>
+        Description of the indicator
+        </h3>
         """, unsafe_allow_html=True)
-    elif is_business_objective_clearly_defined == "Yes":
-        is_data_readily_available = cols[1].selectbox(
-            label="Is data to support business objective readily available?", options=["choose...", "Yes", "No"]
-        )
-
-    is_data_well_aligned_with_objectives = cols[1].selectbox(
-        label="His data well aligned with objectives?", options=["choose...", "Yes", "No"]
-    )
-    with cols[2]:
-        # Create a text input field for keywords
-        st.write(""" Keywords should be separated with commas (,)""", unsafe_allow_html=True)
-        keywords = st.text_input('Enter keywords')
-        st.write(f"""<span >You can gain powerful insights and make accurate conclusions when data is well-aligned to 
-        business objectives. As a data analyst, alignment is something you will need to judge. Good alignment means 
-        that the data is relevant and can help you solve a business problem or determine a course of action to 
-        achieve a given business objective.</span> """, unsafe_allow_html=True)
+        st.write(f"""<div class='border border-info rounded m-3 p-3'>
+        <span class='h2'>{selected_indicator_description}
+        </span> 
+        </div>
+""", unsafe_allow_html=True)
