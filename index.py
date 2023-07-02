@@ -6,6 +6,15 @@ if __name__ == '__main__':
     st.write("""
     <h1 class='h1 text-center'>World-Bank Countries Time Series Data</h1>
     """, unsafe_allow_html=True)
+
+    st.write("""<div class='md text-center'>
+    <p>
+    This is project has been developed as part of the SDG costing project, focusing on data collection to compile an 
+    SDG costing model (SFA). It's a is a personal initiative that main purpose is to support the data collection team in 
+    its work.
+    </p>
+    </div>""", unsafe_allow_html=True)
+
     with st.sidebar:
         countries_df = get_international_country_codes_df()
         country_names, country_codes = countries_df['Country'].tolist(), countries_df['Iso3code'].tolist()
@@ -70,12 +79,18 @@ if __name__ == '__main__':
 
     # ------------------ Survey / Data collection Guide
     with cols[1]:
-        st.write("""<h3 class='title'>
-        Description of the indicator
+        st.write(f"""<h3 class='title'>
+        Description of the indicator: {selected_indicator_name}
         </h3>
         """, unsafe_allow_html=True)
         st.write(f"""<div class='border border-info rounded m-3 p-3'>
-        <span class='h2'>{selected_indicator_description}
-        </span> 
-        </div>
-""", unsafe_allow_html=True)
+                <span class='h2'>{selected_indicator_description}
+                </span> 
+                </div>
+        """, unsafe_allow_html=True)
+
+        st.write(f"""<div class='card'> <div class='card-body'> <h5 class='card-title'>Author Information</h5> <p 
+        class='card-text'>Name: Amos Bationo</p> <p class='card-text'>Email: ****@****.com</p> <p 
+        class='card-text'>Python source code: <a 
+        href='https://github.com/bationoA/worldbank_countries_time_series_data'>https://github.com/bationoA
+        /worldbank_countries_time_series_data</a></p> </div> </div> """, unsafe_allow_html=True)
